@@ -1,0 +1,23 @@
+<nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
+  <div class="container">
+    <a class="navbar-brand fw-bold fs-4 text-gradient" href="{{ url_for('index') }}">
+      <i class="bi bi-pin-map-fill me-2 text-primary"></i>FixMyCity
+    </a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}"><i class="bi bi-house me-1"></i>Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('report') }}"><i class="bi bi-plus-circle me-1"></i>Report</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-bar-chart me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('track') }}"><i class="bi bi-search me-1"></i>Track</a></li>
+        <li class="nav-item ms-lg-2">
+          <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="themeToggle" title="Toggle dark mode">
+            <i class="bi bi-moon-fill" id="themeIcon"></i>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,312 @@
+/* ═══════════════════════════════════════════════════════════════
+   FixMyCity — Main Stylesheet
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --fmc-primary:   #3b82d4;
+  --fmc-secondary: #7c5cd8;
+  --fmc-success:   #10b981;
+  --fmc-warning:   #f59e0b;
+  --fmc-danger:    #ef4444;
+  --fmc-bg:        #ffffff;
+  --fmc-surface:   #f7f8fa;
+  --fmc-border:    #e5e7eb;
+  --fmc-text:      #1f2328;
+  --fmc-muted:     #57606a;
+  --fmc-radius:    14px;
+  --fmc-shadow:    0 2px 16px rgba(0,0,0,0.07);
+}
+
+/* ── Dark Mode ── */
+[data-bs-theme="dark"] {
+  --fmc-bg:      #0d1117;
+  --fmc-surface: #161b22;
+  --fmc-border:  #30363d;
+  --fmc-text:    #e6edf3;
+  --fmc-muted:   #8b949e;
+}
+[data-bs-theme="dark"] .bg-surface { background: var(--fmc-surface) !important; }
+[data-bs-theme="dark"] #mainNav    { background: rgba(13,17,23,0.96) !important; }
+[data-bs-theme="dark"] .category-chip:hover { background: #21262d !important; }
+[data-bs-theme="dark"] .complaint-letter { background: #161b22 !important; color: #e6edf3; }
+[data-bs-theme="dark"] .upload-dropzone { border-color: #30363d !important; }
+[data-bs-theme="dark"] .kpi-card        { background: #161b22; }
+[data-bs-theme="dark"] .stat-card       { background: #161b22; }
+[data-bs-theme="dark"] .helpline-card   { background: #21262d; }
+[data-bs-theme="dark"] .footer          { border-color: #30363d !important; }
+
+/* ── Base ── */
+body {
+  background: var(--fmc-bg);
+  color: var(--fmc-text);
+  font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  transition: background .25s, color .25s;
+}
+
+.bg-surface { background: var(--fmc-surface); }
+
+/* ── Navbar ── */
+#mainNav {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--fmc-border);
+  box-shadow: 0 1px 0 var(--fmc-border);
+  transition: background .25s;
+}
+.navbar-brand { letter-spacing: -0.5px; }
+
+/* ── Text Gradient ── */
+.text-gradient {
+  background: linear-gradient(135deg, var(--fmc-primary), var(--fmc-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Hero ── */
+.hero-section {
+  padding: 80px 0 60px;
+  background: linear-gradient(160deg, #f0f7ff 0%, #fafafa 60%, #f3f0ff 100%);
+  position: relative;
+  overflow: hidden;
+}
+[data-bs-theme="dark"] .hero-section {
+  background: linear-gradient(160deg, #0d1117 0%, #161b22 100%);
+}
+.hero-section::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(59,130,212,0.08), transparent);
+  pointer-events: none;
+}
+
+/* ── Stats Strip ── */
+.stat-card {
+  background: var(--fmc-surface);
+  border-radius: var(--fmc-radius);
+  border: 1px solid var(--fmc-border);
+  transition: transform .2s;
+}
+.stat-card:hover { transform: translateY(-2px); }
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--fmc-primary);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label { font-size: 0.78rem; color: var(--fmc-muted); text-transform: uppercase; letter-spacing: .5px; }
+
+/* ── Feature Cards ── */
+.feature-card {
+  background: var(--fmc-surface);
+  border-radius: var(--fmc-radius);
+  border: 1px solid var(--fmc-border);
+  transition: transform .2s, box-shadow .2s;
+  height: 100%;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: var(--fmc-shadow); }
+.feature-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+}
+
+/* ── Category Chips ── */
+.category-chip {
+  background: var(--fmc-surface);
+  transition: background .15s, transform .15s, box-shadow .15s;
+  cursor: pointer;
+}
+.category-chip:hover {
+  background: #eff6ff;
+  transform: translateY(-2px);
+  box-shadow: var(--fmc-shadow);
+  border-color: var(--fmc-primary) !important;
+}
+
+/* ── KPI Cards ── */
+.kpi-card {
+  background: var(--fmc-surface);
+  border: 1px solid var(--fmc-border);
+  border-radius: var(--fmc-radius);
+}
+.kpi-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+.kpi-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.kpi-label { font-size: 0.75rem; color: var(--fmc-muted); text-transform: uppercase; letter-spacing: .4px; }
+
+/* ── Upload Dropzone ── */
+.upload-dropzone {
+  border: 2px dashed var(--fmc-border);
+  background: var(--fmc-surface);
+  transition: border-color .2s, background .2s;
+  cursor: pointer;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.upload-dropzone.drag-over {
+  border-color: var(--fmc-primary);
+  background: #eff6ff;
+}
+
+/* ── Timeline ── */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before {
+  content: '';
+  position: absolute; left: 8px; top: 4px; bottom: 4px;
+  width: 2px; background: var(--fmc-border);
+}
+.timeline-item {
+  position: relative;
+  padding-bottom: 20px;
+}
+.timeline-dot {
+  position: absolute; left: -20px; top: 4px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--fmc-border);
+  border: 2px solid var(--fmc-surface);
+  z-index: 1;
+}
+.timeline-item.active .timeline-dot {
+  background: var(--fmc-success);
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
+}
+.timeline-content { padding-left: 4px; }
+
+/* ── Complaint Letter ── */
+.complaint-letter {
+  background: #fafafa;
+  border: 1px solid var(--fmc-border);
+  border-left: 4px solid var(--fmc-primary);
+}
+
+/* ── AI Badge ── */
+.badge-ai {
+  display: inline-flex; align-items: center;
+  background: linear-gradient(135deg, var(--fmc-primary), var(--fmc-secondary));
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ── Dept Info ── */
+.dept-info-item {
+  padding: 10px 14px;
+  background: var(--fmc-surface);
+  border-radius: 10px;
+  border: 1px solid var(--fmc-border);
+}
+
+/* ── Helpline Card ── */
+.helpline-card {
+  background: var(--fmc-surface);
+  border: 1px solid var(--fmc-border);
+}
+
+/* ── Success checkmark ── */
+.check-circle {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto;
+  animation: pop-in .5s cubic-bezier(.36,1.56,.64,1) both;
+}
+@keyframes pop-in {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Animations ── */
+.animate-fade-in {
+  animation: fadeIn .6s ease both;
+}
+.animate-slide-up {
+  animation: slideUp .6s ease both;
+}
+.delay-1 { animation-delay: .12s; }
+.delay-2 { animation-delay: .24s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Loading Spinner ── */
+.ai-loading {
+  display: none;
+}
+.ai-loading.show {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+}
+.spinner-gradient {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 4px solid var(--fmc-border);
+  border-top-color: var(--fmc-primary);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Submit button loading state ── */
+#submitBtn.loading { pointer-events: none; opacity: .7; }
+
+/* ── Cat chart ── */
+.cat-chart-container { max-height: 280px; overflow-y: auto; }
+
+/* ── Responsive ── */
+@media (max-width: 576px) {
+  .hero-section { padding: 48px 0 40px; }
+  h1.display-3 { font-size: 2.2rem; }
+  .stat-number { font-size: 1.4rem; }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--fmc-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fmc-muted); }
+
+/* ── Table ── */
+.table { font-size: 0.875rem; }
+.table-hover tbody tr:hover { background-color: var(--fmc-surface); }
+
+/* ── Form Controls ── */
+.form-control:focus, .form-select:focus {
+  border-color: var(--fmc-primary);
+  box-shadow: 0 0 0 3px rgba(59,130,212,0.12);
+}
+
+/* ── Cards ── */
+.card { border-radius: var(--fmc-radius) !important; }

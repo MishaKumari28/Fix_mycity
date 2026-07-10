@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Complaint Filed — FixMyCity</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container py-4" style="max-width:840px">
+
+  <!-- Success banner -->
+  <div class="text-center py-4 animate-fade-in">
+    <div class="success-checkmark mb-3">
+      <div class="check-circle bg-success-subtle">
+        <i class="bi bi-check-lg text-success fs-1"></i>
+      </div>
+    </div>
+    <h2 class="fw-bold">Complaint Registered!</h2>
+    <p class="text-muted">Your complaint ID is:</p>
+    <div class="d-inline-flex align-items-center gap-2 bg-primary-subtle text-primary rounded-pill px-4 py-2 mb-2">
+      <i class="bi bi-hash"></i>
+      <span class="fw-bold fs-5" id="cid">{{ complaint.id }}</span>
+      <button class="btn btn-sm btn-link p-0 text-primary" onclick="copyId('{{ complaint.id }}')" title="Copy ID">
+        <i class="bi bi-clipboard" id="copyIcon"></i>
+      </button>
+    </div>
+    <div class="text-muted small">Save this ID to track your complaint status</div>
+  </div>
+
+  <!-- AI Classification Card -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4 animate-slide-up">
+    <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge-ai"><i class="bi bi-cpu me-1"></i>AI Analysis</span>
+        <span class="text-muted small ms-auto">IBM Granite · Confidence: <strong>{{ (complaint.classification.confidence * 100)|int }}%</strong></span>
+      </div>
+    </div>
+    <div class="card-body p-4">
+      <div class="row g-4 align-items-center">
+        <div class="col-md-7">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="fs-2">{{ cat_info.emoji }}</span>
+            <div>
+              <div class="fw-bold fs-5">{{ cat_info.label }}</div>
+              <div class="text-muted small">{{ complaint.classification.summary }}</div>
+            </div>
+          </div>
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="badge rounded-pill
+              {% if complaint.classification.severity == 'critical' %}bg-danger
+              {% elif complaint.classification.severity == 'high' %}bg-warning text-dark
+              {% elif complaint.classification.severity == 'medium' %}bg-info text-dark
+              {% else %}bg-secondary{% endif %}">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ complaint.classification.severity|title }} Severity
+            </span>
+            <span class="badge rounded-pill bg-primary-subtle text-primary">
+              <i class="bi bi-geo-alt me-1"></i>{{ complaint.location }}
+            </span>
+            <span class="badge rounded-pill bg-success-subtle text-success">
+              <i class="bi bi-clock me-1"></i>{{ complaint.status }}
+            </span>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="confidence-gauge text-center">
+            <svg viewBox="0 0 120 60" class="w-100" style="max-width:180px">
+              <path d="M10 55 A50 50 0 0 1 110 55" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+              <path d="M10 55 A50 50 0 0 1 110 55" fill="none" stroke="#3b82d4" stroke-width="10"
+                stroke-linecap="round"
+                stroke-dasharray="{{ complaint.classification.confidence * 157.08 }}, 157.08"/>
+            </svg>
+            <div class="fw-bold fs-4 mt-n2">{{ (complaint.classification.confidence * 100)|int }}%</div>
+            <div class="text-muted small">AI Confidence</div>
+          </div>
+        </div>
+      </div>
+
+      {% if complaint.image %}
+      <div class="mt-3">
+        <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}"
+          alt="Issue photo" class="img-fluid rounded-3" style="max-height:240px;object-fit:cover"/>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Department Routing -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <h5 class="fw-semibold mb-3"><i class="bi bi-building-fill-gear text-primary me-2"></i>Government Department Matched</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="dept-info-item">
+            <div class="text-muted small mb-1"><i class="bi bi-bank me-1"></i>Department</div>
+            <div class="fw-medium">{{ complaint.dept.dept }}</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="dept-info-item">
+            <div class="text-muted small mb-1"><i class="bi bi-telephone me-1"></i>Helpline</div>
+            <a href="tel:{{ complaint.dept.helpline }}" class="fw-medium text-decoration-none text-primary">
+              <i class="bi bi-telephone-fill me-1"></i>{{ complaint.dept.helpline }}
+            </a>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="dept-info-item">
+            <div class="text-muted small mb-1"><i class="bi bi-globe me-1"></i>Portal</div>
+            <a href="{{ complaint.dept.portal }}" target="_blank" class="fw-medium text-decoration-none text-primary">
+              {{ complaint.dept.portal }} <i class="bi bi-box-arrow-up-right ms-1 small"></i>
+            </a>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="dept-info-item">
+            <div class="text-muted small mb-1"><i class="bi bi-phone me-1"></i>App</div>
+            <div class="fw-medium">{{ complaint.dept.app }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-3">
+        <a href="{{ complaint.dept.portal }}" target="_blank" class="btn btn-primary rounded-pill px-4 me-2">
+          <i class="bi bi-box-arrow-up-right me-2"></i>File on Government Portal
+        </a>
+        <a href="tel:{{ complaint.dept.helpline }}" class="btn btn-outline-success rounded-pill px-4">
+          <i class="bi bi-telephone me-2"></i>Call Helpline
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaint Draft -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h5 class="fw-semibold mb-0"><i class="bi bi-file-earmark-text text-primary me-2"></i>Auto-Generated Complaint Letter</h5>
+        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="copyComplaint()">
+          <i class="bi bi-clipboard me-1"></i>Copy
+        </button>
+      </div>
+      <div class="complaint-letter p-4 rounded-3 bg-surface" id="complaintText" style="white-space:pre-wrap;font-family:Georgia,serif;font-size:0.9rem;line-height:1.8">{{ complaint.complaint_text }}</div>
+    </div>
+  </div>
+
+  <!-- Status Timeline -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <h5 class="fw-semibold mb-3"><i class="bi bi-activity text-primary me-2"></i>Complaint Status</h5>
+      <div class="timeline">
+        {% for h in complaint.status_history %}
+        <div class="timeline-item {{ 'active' if loop.last else '' }}">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="fw-medium">{{ h.status }}</div>
+            <div class="text-muted small">{{ h.note }}</div>
+            <div class="text-muted small">{{ h.timestamp[:16].replace('T',' ') }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center pb-4">
+    <a href="{{ url_for('report') }}" class="btn btn-outline-primary rounded-pill px-4 me-2">
+      <i class="bi bi-plus-circle me-2"></i>Report Another
+    </a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="bi bi-bar-chart me-2"></i>View Dashboard
+    </a>
+  </div>
+
+</div>
+
+{% include 'footer.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+function copyId(id) {
+  navigator.clipboard.writeText(id);
+  document.getElementById('copyIcon').className = 'bi bi-clipboard-check';
+  setTimeout(()=>{ document.getElementById('copyIcon').className = 'bi bi-clipboard'; }, 2000);
+}
+function copyComplaint() {
+  const text = document.getElementById('complaintText').innerText;
+  navigator.clipboard.writeText(text);
+}
+</script>
+</body>
+</html>

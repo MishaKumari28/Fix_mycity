@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Confidential Help — FixMyCity</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container py-5" style="max-width:660px">
+
+  <!-- Header -->
+  <div class="text-center mb-4">
+    <div class="mx-auto mb-3 bg-danger-subtle rounded-circle d-flex align-items-center justify-content-center"
+      style="width:72px;height:72px">
+      <i class="bi bi-shield-fill-check text-danger fs-2"></i>
+    </div>
+    <h2 class="fw-bold">You Are Not Alone</h2>
+    <p class="text-muted">
+      This is a <strong>confidential, private space</strong>. No images are captured or stored.<br/>
+      No identifying information is displayed publicly.
+    </p>
+  </div>
+
+  <!-- Category label -->
+  <div class="alert alert-danger border-0 rounded-3 text-center mb-4">
+    <strong>{{ helpline_info.label }}</strong> — Immediate support resources are listed below.
+  </div>
+
+  <!-- Helplines -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <h5 class="fw-semibold mb-3"><i class="bi bi-telephone-fill text-danger me-2"></i>Emergency Helplines</h5>
+      <div class="d-grid gap-3">
+        {% for h in helpline_info.helplines %}
+        <div class="helpline-card rounded-3 p-3 d-flex align-items-center justify-content-between gap-3">
+          <div>
+            <div class="fw-semibold">{{ h.name }}</div>
+            <div class="text-muted small">Free · Confidential · 24/7</div>
+          </div>
+          <div>
+            {% if h.number.startswith('http') %}
+            <a href="{{ h.number }}" target="_blank" rel="noopener noreferrer"
+              class="btn btn-danger rounded-pill px-4">
+              <i class="bi bi-box-arrow-up-right me-1"></i>Open Portal
+            </a>
+            {% else %}
+            <a href="tel:{{ h.number }}" class="btn btn-danger rounded-pill px-4 fs-5 fw-bold">
+              <i class="bi bi-telephone-fill me-2"></i>{{ h.number }}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Text report box — private, not stored publicly -->
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <h5 class="fw-semibold mb-1"><i class="bi bi-lock-fill text-success me-2"></i>Private Text Report</h5>
+      <p class="text-muted small mb-3">
+        Describe what happened in your own words. This text is only used to connect you with help
+        and is <strong>never stored publicly or shared without your consent</strong>.
+      </p>
+      <textarea class="form-control mb-3" rows="5" id="sensitiveText"
+        placeholder="Describe the situation here (optional). Be as detailed or brief as you wish."></textarea>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="tel:{{ helpline_info.helplines[0].number }}" class="btn btn-danger rounded-pill px-4">
+          <i class="bi bi-telephone-fill me-2"></i>Call Now ({{ helpline_info.helplines[0].number }})
+        </a>
+        <button type="button" class="btn btn-outline-danger rounded-pill px-4" onclick="clearSensitiveText()">
+          <i class="bi bi-trash me-2"></i>Clear &amp; Leave
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Safety tips -->
+  <div class="card border-0 rounded-3 bg-warning-subtle border-warning mb-4">
+    <div class="card-body p-4">
+      <h6 class="fw-semibold mb-2"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Safety Tips</h6>
+      <ul class="mb-0 small text-body ps-3">
+        <li>If you are in immediate danger, call <strong>112</strong> (All Emergencies) right now.</li>
+        <li>Move to a safe location before making a call if possible.</li>
+        <li>Clear your browser history after using this page if needed.</li>
+        <li>You can trust CHILDLINE <strong>1098</strong> for children at any hour.</li>
+        <li>All calls to 181 (Women Helpline) are free and confidential.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="bi bi-house me-2"></i>Return to Home
+    </a>
+  </div>
+
+</div>
+
+{% include 'footer.html' %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+function clearSensitiveText() {
+  document.getElementById('sensitiveText').value = '';
+  // Also attempt to clear browser history entry for privacy
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, '', '/');
+  }
+  window.location.href = '/';
+}
+</script>
+</body>
+</html>

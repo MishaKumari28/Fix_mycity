@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dashboard — FixMyCity</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container-fluid py-4 px-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">Issue Dashboard</h2>
+      <div class="text-muted small">Real-time overview of civic complaints</div>
+    </div>
+    <a href="{{ url_for('report') }}" class="btn btn-primary rounded-pill px-4">
+      <i class="bi bi-plus-circle me-2"></i>New Report
+    </a>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card p-3 rounded-3">
+        <div class="kpi-icon bg-primary-subtle text-primary"><i class="bi bi-list-check"></i></div>
+        <div class="kpi-value">{{ complaints|length }}</div>
+        <div class="kpi-label">Total Complaints</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card p-3 rounded-3">
+        <div class="kpi-icon bg-warning-subtle text-warning"><i class="bi bi-hourglass-split"></i></div>
+        <div class="kpi-value">{{ complaints|selectattr('status','equalto','Submitted')|list|length }}</div>
+        <div class="kpi-label">Pending</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card p-3 rounded-3">
+        <div class="kpi-icon bg-danger-subtle text-danger"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="kpi-value">{{ complaints|selectattr('classification.severity','equalto','critical')|list|length }}</div>
+        <div class="kpi-label">Critical</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card p-3 rounded-3">
+        <div class="kpi-icon bg-success-subtle text-success"><i class="bi bi-check-circle"></i></div>
+        <div class="kpi-value">{{ complaints|selectattr('status','equalto','Resolved')|list|length }}</div>
+        <div class="kpi-label">Resolved</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Category Breakdown Chart -->
+    <div class="col-md-5">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3"><i class="bi bi-pie-chart text-primary me-2"></i>Issues by Category</h6>
+          {% if category_counts %}
+            <div class="cat-chart-container">
+              {% set total = category_counts.values()|sum %}
+              {% set bar_colors = ['#3b82d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#64748b','#6366f1'] %}
+              {% for cat_id, count in category_counts.items() %}
+              {% set pct = (count / total * 100)|round(1) %}
+              {% set idx = loop.index0 % bar_colors|length %}
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <div class="flex-shrink-0" style="width:12px;height:12px;border-radius:3px;background:{{ bar_colors[idx] }}"></div>
+                <div class="small flex-grow-1">{{ categories.get(cat_id, {}).get('label', cat_id) }}</div>
+                <div class="progress flex-grow-1" style="height:8px;min-width:80px">
+                  <div class="progress-bar" style="width:{{ pct }}%;background:{{ bar_colors[idx] }}"></div>
+                </div>
+                <div class="small text-muted fw-medium" style="min-width:32px;text-align:right">{{ count }}</div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center text-muted py-4">
+              <i class="bi bi-inbox fs-2 mb-2 d-block"></i>No data yet
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="col-md-7">
+      <div class="card border-0 shadow-sm rounded-3 h-100">
+        <div class="card-body p-4">
+          <h6 class="fw-semibold mb-3"><i class="bi bi-map text-primary me-2"></i>Issue Map (Geotagged Reports)</h6>
+          <div id="issueMap" style="height:320px;border-radius:12px;background:#e8eef4;overflow:hidden">
+            <div class="d-flex align-items-center justify-content-center h-100 text-muted flex-column gap-2">
+              <i class="bi bi-geo-alt fs-1"></i>
+              <span class="small">Map loads with geotagged reports</span>
+              <span class="small text-muted">(Leaflet map — requires online connection)</span>
+            </div>
+          </div>
+          <div class="text-muted small mt-2" id="mapStatus"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Complaints Table -->
+  <div class="card border-0 shadow-sm rounded-3 mt-4">
+    <div class="card-body p-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-semibold mb-0"><i class="bi bi-table text-primary me-2"></i>All Complaints</h6>
+        <input class="form-control form-control-sm rounded-pill" style="max-width:220px"
+          type="search" id="tableSearch" placeholder="Search..."/>
+      </div>
+      {% if complaints %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle" id="complaintsTable">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Category</th>
+              <th>Location</th>
+              <th>Severity</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in complaints %}
+            <tr>
+              <td><code class="small">{{ c.id }}</code></td>
+              <td>
+                <span class="me-1">{{ categories.get(c.category, {}).get('emoji', '📋') }}</span>
+                <span class="small">{{ c.category_label }}</span>
+              </td>
+              <td class="small text-muted">{{ c.location[:40] }}{% if c.location|length > 40 %}…{% endif %}</td>
+              <td>
+                <span class="badge rounded-pill
+                  {% if c.classification.severity == 'critical' %}bg-danger
+                  {% elif c.classification.severity == 'high' %}bg-warning text-dark
+                  {% elif c.classification.severity == 'medium' %}bg-info text-dark
+                  {% else %}bg-secondary{% endif %}">
+                  {{ c.classification.severity|title }}
+                </span>
+              </td>
+              <td>
+                <span class="badge rounded-pill
+                  {% if c.status == 'Resolved' %}bg-success
+                  {% elif c.status == 'In Progress' %}bg-primary
+                  {% else %}bg-warning text-dark{% endif %}">
+                  {{ c.status }}
+                </span>
+              </td>
+              <td class="small text-muted">{{ c.submitted_at[:10] }}</td>
+              <td>
+                <a href="{{ url_for('result', complaint_id=c.id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                  View
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 mb-3 d-block"></i>
+        <p>No complaints yet.</p>
+        <a href="{{ url_for('report') }}" class="btn btn-primary rounded-pill px-4">
+          <i class="bi bi-plus-circle me-2"></i>Report First Issue
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% include 'footer.html' %}
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
