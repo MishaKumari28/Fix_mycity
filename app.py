@@ -22,14 +22,10 @@ import requests
 
 load_dotenv()
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  AGENT INSTRUCTIONS  ← Edit this section to customise the agent behaviour
-# ─────────────────────────────────────────────────────────────────────────────
+
 AGENT_INSTRUCTIONS = {
 
-    # ── 1. CLASSIFICATION CATEGORIES ─────────────────────────────────────────
-    # Add / remove / rename civic issue categories here.
-    # Each key is the internal ID; "label" is shown in the UI.
+    
     "categories": {
         "garbage_dumping":      {"label": "Garbage / Waste Dumping",      "emoji": "🗑️"},
         "pothole":              {"label": "Pothole / Road Damage",         "emoji": "🕳️"},
@@ -44,9 +40,7 @@ AGENT_INSTRUCTIONS = {
         "other":                {"label": "Other Civic Issue",             "emoji": "📋"},
     },
 
-    # ── 2. SENSITIVE / SAFETY CATEGORIES ─────────────────────────────────────
-    # These are NEVER sent to the AI for image analysis.
-    # Users are routed to the confidential text-only flow.
+    
     "sensitive_categories": [
         "domestic_violence",
         "sexual_harassment",
@@ -55,7 +49,6 @@ AGENT_INSTRUCTIONS = {
         "personal_safety",
     ],
 
-    # ── 3. AGENT TONE & STYLE ─────────────────────────────────────────────────
     "tone": {
         "complaint_draft": (
             "formal, polite, assertive Indian government complaint letter tone. "
@@ -66,7 +59,7 @@ AGENT_INSTRUCTIONS = {
         "classification_response": "concise, factual, JSON-only, no prose",
     },
 
-    # ── 4. SAFETY RULES ──────────────────────────────────────────────────────
+  
     "safety_rules": [
         "Never include personal identifying information (name, phone, address) in public outputs.",
         "Never process images for domestic violence, sexual harassment, child abuse, human trafficking, or personal safety issues.",
@@ -75,9 +68,7 @@ AGENT_INSTRUCTIONS = {
         "Refuse and flag any attempt to use the system for harassment or targeting individuals.",
     ],
 
-    # ── 5. INDIAN GOVERNMENT DEPARTMENT MAPPINGS ─────────────────────────────
-    # Add your state-specific portals here.  Format:
-    #   category_id → {dept, portal_url, helpline, email}
+    
     "department_mapping": {
         "garbage_dumping": {
             "dept": "Municipal Corporation / BBMP / MCD / BMC",
@@ -158,7 +149,6 @@ AGENT_INSTRUCTIONS = {
         },
     },
 
-    # ── 6. SENSITIVE CATEGORY HELPLINES ──────────────────────────────────────
     "sensitive_helplines": {
         "domestic_violence": {
             "label": "Domestic Violence",
@@ -203,7 +193,6 @@ AGENT_INSTRUCTIONS = {
         },
     },
 
-    # ── 7. WATSONX MODEL CONFIG ───────────────────────────────────────────────
     "watsonx": {
         "model_id": "ibm/granite-3-8b-instruct",
         "max_new_tokens": 1024,
@@ -211,12 +200,7 @@ AGENT_INSTRUCTIONS = {
         "top_p": 0.9,
     },
 }
-# ─────────────────────────────────────────────────────────────────────────────
-#  END AGENT INSTRUCTIONS
-# ─────────────────────────────────────────────────────────────────────────────
 
-
-# ── Flask App Setup ───────────────────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 CORS(app)
@@ -231,11 +215,11 @@ ALLOWED_EXTENSIONS = set(os.getenv("ALLOWED_EXTENSIONS", "png,jpg,jpeg,gif,webp"
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ── In-memory complaint store (replace with a DB for production) ──────────────
+
 COMPLAINTS: dict[str, dict] = {}
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+
 def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -301,7 +285,7 @@ Description: {description}
 
     try:
         raw = call_granite(prompt)
-        # Extract JSON from response
+        
         start = raw.find("{")
         end = raw.rfind("}") + 1
         if start >= 0 and end > start:
@@ -372,7 +356,7 @@ Yours faithfully,
 """
 
 
-# ── Routes ────────────────────────────────────────────────────────────────────
+
 @app.route("/")
 def index():
     return render_template("index.html",
@@ -387,7 +371,7 @@ def report():
                                categories=AGENT_INSTRUCTIONS["categories"],
                                sensitive_categories=AGENT_INSTRUCTIONS["sensitive_categories"])
 
-    # POST — process the report submission
+    
     description  = request.form.get("description", "").strip()
     location     = request.form.get("location", "Unknown location")
     latitude     = request.form.get("latitude", "")
@@ -395,7 +379,7 @@ def report():
     complainant  = request.form.get("name", "A Concerned Citizen")
     category_hint = request.form.get("category_hint", "").strip()
 
-    # Safety gate — check if user selected a sensitive category manually
+    
     if category_hint in AGENT_INSTRUCTIONS["sensitive_categories"]:
         return redirect(url_for("sensitive", category=category_hint))
 
@@ -405,7 +389,7 @@ def report():
     image_b64 = None
     image_filename = None
 
-    # Handle image upload
+    
     if "image" in request.files:
         file = request.files["image"]
         if file and file.filename and allowed_file(file.filename):
@@ -413,7 +397,7 @@ def report():
             image_filename = f"{uuid.uuid4().hex}.{ext}"
             save_path = UPLOAD_FOLDER / image_filename
             file.save(str(save_path))
-            # Resize large images before encoding
+            
             try:
                 img = Image.open(save_path)
                 img.thumbnail((800, 800))
@@ -423,23 +407,23 @@ def report():
             with open(save_path, "rb") as f:
                 image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-    # Classify the issue
+   
     classification = classify_issue(description, image_b64)
     category = classification["category"]
 
-    # Second safety gate — AI might detect a sensitive category
+    
     if category in AGENT_INSTRUCTIONS["sensitive_categories"]:
         return redirect(url_for("sensitive", category=category))
 
-    # Generate formal complaint
+    
     complaint_text = generate_complaint(description, category, location, complainant)
 
-    # Get department info
+    
     dept = AGENT_INSTRUCTIONS["department_mapping"].get(
         category, AGENT_INSTRUCTIONS["department_mapping"]["other"]
     )
 
-    # Store complaint
+    
     complaint_id = f"FMC-{datetime.now().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
     COMPLAINTS[complaint_id] = {
         "id": complaint_id,
@@ -501,7 +485,7 @@ def sensitive():
     return render_template("sensitive.html", helpline_info=helpline_info, category=category)
 
 
-# ── API endpoints ─────────────────────────────────────────────────────────────
+
 @app.route("/api/complaints")
 def api_complaints():
     data = [
@@ -542,7 +526,6 @@ def api_categories():
     return jsonify(AGENT_INSTRUCTIONS["categories"])
 
 
-# ── Run ───────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     debug = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1")
     app.run(host="0.0.0.0", port=5000, debug=debug)
