@@ -2,8 +2,8 @@ FixMyCity 🏙️ — AI-Powered Civic Issue Reporting
 
 Built with Python Flask + IBM Watsonx.ai (Granite) · Responsive Bootstrap UI · Indian government integrations
 
-✨ Features
-Feature	Details
+✨ Features:-
+
 AI Classification-	IBM Granite-3-8B classifies civic issues from text + image.
 Image Upload-	File upload or live camera capture with drag-and-drop.
 Formal Complaint- Generator	AI drafts a professional Indian government complaint letter.
